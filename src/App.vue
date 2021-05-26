@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <VueTable :data="tableData" />
+    <VueTable :data="tableData" defaultSort="name" pageSize=3 />
   </div>
 </template>
 

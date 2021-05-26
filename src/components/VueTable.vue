@@ -33,14 +33,27 @@
         </tr>
         <tr>
           <th colspan="1"></th>
-          <th scope="col" v-for="(col, index) in cols" :key="index">
+          <th
+            scope="col"
+            v-for="(col, index) in cols"
+            :key="index"
+            @click="sort(col)"
+          >
             {{ col }}
+            <i
+              :class="{
+                'fa fa-caret-down':
+                  sortByDir == 'asc' && sortByField == col,
+                'fa fa-caret-up':
+                  sortByDir == 'desc' && sortByField == col,
+              }"
+            ></i>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr
-          v-for="(row, rowIdx) in data"
+          v-for="(row, rowIdx) in sortedData"
           :key="rowIdx"
           :class="{ 'tbl-row-selected': selected.indexOf(row.name) > -1 }"
         >
@@ -66,19 +79,28 @@
         </tr>
       </tbody>
     </table>
+    <button class="btn" @click="prevPage">
+      <i class="fa fa-caret-left"></i> Previous
+    </button>
+    <button class="btn" @click="nextPage">
+      Next <i class="fa fa-caret-right"></i>
+    </button>
     <dialog open id="dialog" v-if="showDialog">
       <div class="dialog-header">
-        <div class="title">
-          Downloadable Content
-        </div>
+        <div class="title">Downloadable Content</div>
         <button class="btn-close" @click="closeDialog">
           <i class="fa fa-close"></i>
         </button>
-      </div>  
+      </div>
       <h4>Available Content</h4>
       <div v-if="availableContent && availableContent.length > 0">
-        <div v-for="(content, idx) in availableContent" :key="idx + content.path">
-          <span><b>{{ content.device }}</b></span>:
+        <div
+          v-for="(content, idx) in availableContent"
+          :key="idx + content.path"
+        >
+          <span
+            ><b>{{ content.device }}</b></span
+          >:
           {{ content.path }}
         </div>
       </div>
@@ -86,8 +108,13 @@
       <br />
       <h4>Scheduled Content</h4>
       <div v-if="scheduledContent && scheduledContent.length > 0">
-        <div v-for="(content, idx) in scheduledContent" :key="idx + content.path">
-          <span><b>{{ content.device }}</b></span>:
+        <div
+          v-for="(content, idx) in scheduledContent"
+          :key="idx + content.path"
+        >
+          <span
+            ><b>{{ content.device }}</b></span
+          >:
           {{ content.path }}
         </div>
       </div>
@@ -102,6 +129,8 @@ export default {
   name: "VueTable",
   props: {
     data: Array,
+    defaultSort:String,
+    pageSize:String
   },
   data() {
     return {
@@ -113,16 +142,38 @@ export default {
       dialogContent: [],
       availableContent: [],
       scheduledContent: [],
+      sortByField: "name",
+      sortByDir: "asc",
+      pageSizeNo: "5",
+      currentPage: "1",
     };
   },
   created() {
     if (this.data.length) this.cols = Object.keys(this.data[0]);
+    this.pageSizeNo = this.pageSize;
+    this.sortByField = this.defaultSort;
   },
   computed: {
     getSelectedCount() {
       return this.selected.length > 0
         ? "Selected " + this.selected.length
         : "None Selected";
+    },
+    sortedData() {
+      return this.data
+        .slice(0)
+        .sort((a, b) => {
+          if (a[this.sortByField] < b[this.sortByField])
+            return -1 * ((this.sortByDir === "desc") ? -1 : 1);
+          if (a[this.sortByField] > b[this.sortByField])
+            return 1 * ((this.sortByDir === "desc") ? -1 : 1);
+          return 0;
+        })
+        .filter((row, index) => {
+          let start = (this.currentPage - 1) * this.pageSizeNo;
+          let end = this.currentPage * this.pageSizeNo;
+          if (index >= start && index < end) return true;
+        });
     },
   },
   methods: {
@@ -161,6 +212,19 @@ export default {
         acc[cur[property]] = [...(acc[cur[property]] || []), cur];
         return acc;
       }, {});
+    },
+    sort(colName) {
+      if (colName === this.sortByField) {
+        this.sortByDir = this.sortByDir === "asc" ? "desc" : "asc";
+      }
+      this.sortByField = colName;
+    },
+    nextPage() {
+      if (this.currentPage * this.pageSizeNo < this.data.length)
+        this.currentPage++;
+    },
+    prevPage: function () {
+      if (this.currentPage > 1) this.currentPage--;
     },
   },
   watch: {
