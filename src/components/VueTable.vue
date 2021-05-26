@@ -11,6 +11,7 @@
               <input
                 type="checkbox"
                 v-model="selectAllChkboxModel"
+                v-indeterminate="indeterminateChkboxModel"
                 @click="selectAllItems"
               />
               <i class="form-icon"></i>
@@ -75,6 +76,7 @@ export default {
       cols: [],
       selected: [],
       selectAllChkboxModel: false,
+      indeterminateChkboxModel: false,
     };
   },
   created() {
