@@ -6,6 +6,28 @@
       </caption>
       <thead>
         <tr>
+          <th scope="col">
+            <label>
+              <input
+                type="checkbox"
+                v-model="selectAllChkboxModel"
+                @click="selectAllItems"
+              />
+              <i class="form-icon"></i>
+            </label>
+          </th>
+          <th scope="col">
+            {{ getSelectedCount }}
+          </th>
+          <th scope="col">
+            <button class="btn" @click="downloadSelected">
+              <i class="fa fa-download"></i> Download Selected
+            </button>
+          </th>
+          <th :colspan="cols.length - 2"></th>
+        </tr>
+        <tr>
+          <th colspan="1"></th>
           <th scope="col" v-for="(col, index) in cols" :key="index">
             {{ col }}
           </th>
@@ -15,7 +37,14 @@
         <tr
           v-for="(row, rowIdx) in data"
           :key="rowIdx"
+          :class="{ 'tbl-row-selected': selected.indexOf(row.name) > -1 }"
         >
+          <td>
+            <label>
+              <input type="checkbox" :value="row.name" v-model="selected" />
+              <i class="form-icon"></i>
+            </label>
+          </td>
           <td :data-label="col" v-for="(col, colIdx) in cols" :key="colIdx">
             <span
               v-if="
@@ -44,15 +73,42 @@ export default {
   data() {
     return {
       cols: [],
+      selected: [],
+      selectAllChkboxModel: false,
     };
   },
   created() {
-    if (this.data.length)
-      this.cols = Object.keys(this.data[0]);
+    if (this.data.length) this.cols = Object.keys(this.data[0]);
   },
-  computed: {},
-  methods: {},
-  watch: {},
+  computed: {
+    getSelectedCount() {
+      return this.selected.length > 0
+        ? "Selected " + this.selected.length
+        : "None Selected";
+    },
+  },
+  methods: {
+    selectAllItems() {
+      this.selected = [];
+      if (!this.selectAllChkboxModel) {
+        for (let i in this.data) {
+          this.selected.push(this.data[i].name);
+        }
+      }
+    },
+    downloadSelected() {},
+  },
+  watch: {
+    selected: function () {
+      if (this.selected.length == this.data.length) {
+        this.selectAllChkboxModel = true;
+        this.indeterminateChkboxModel = false;
+      } else if (this.selected.length == 0) {
+        this.selectAllChkboxModel = false;
+        this.indeterminateChkboxModel = false;
+      } else this.indeterminateChkboxModel = true;
+    },
+  },
 };
 </script>
 
@@ -76,7 +132,7 @@ table th {
   text-align: left;
   padding: 12px;
   min-width: 30px;
-  border-bottom: 1px solid#d1cccc;
+  border-bottom: 1px solid#e0e0e0;
 }
 
 tbody tr {
@@ -84,12 +140,32 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background-color: #ececec;
+  background-color: #f7f5f5;
   cursor: pointer;
 }
 
 table td {
   text-align: left;
   padding: 10px;
+}
+
+.btn {
+  background-color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.btn-green {
+  background-color: green;
+  color: white;
+  padding: 5px;
+  border: 1px solid white;
+  border-radius: 5px;
+}
+
+.tbl-row-selected {
+  background-color: #ececec;
+  cursor: pointer;
 }
 </style>
