@@ -21,7 +21,11 @@
             {{ getSelectedCount }}
           </th>
           <th scope="col">
-            <button class="btn" @click="downloadSelected">
+            <button
+              class="btn"
+              @click="downloadSelected"
+              :class="{ 'btn-disabled': selected.length == 0 }"
+            >
               <i class="fa fa-download"></i> Download Selected
             </button>
           </th>
@@ -62,6 +66,34 @@
         </tr>
       </tbody>
     </table>
+    <dialog open id="dialog" v-if="showDialog">
+      <div class="dialog-header">
+        <div class="title">
+          Downloadable Content
+        </div>
+        <button class="btn-close" @click="closeDialog">
+          <i class="fa fa-close"></i>
+        </button>
+      </div>  
+      <h4>Available Content</h4>
+      <div v-if="availableContent && availableContent.length > 0">
+        <div v-for="(content, idx) in availableContent" :key="idx + content.path">
+          <span><b>{{ content.device }}</b></span>:
+          {{ content.path }}
+        </div>
+      </div>
+      <div v-else>NONE</div>
+      <br />
+      <h4>Scheduled Content</h4>
+      <div v-if="scheduledContent && scheduledContent.length > 0">
+        <div v-for="(content, idx) in scheduledContent" :key="idx + content.path">
+          <span><b>{{ content.device }}</b></span>:
+          {{ content.path }}
+        </div>
+      </div>
+      <div v-else>NONE</div>
+      <button class="btn btn-green" @click="closeDialog">OK</button>
+    </dialog>
   </div>
 </template>
 
@@ -77,6 +109,10 @@ export default {
       selected: [],
       selectAllChkboxModel: false,
       indeterminateChkboxModel: false,
+      showDialog: false,
+      dialogContent: [],
+      availableContent: [],
+      scheduledContent: [],
     };
   },
   created() {
@@ -98,7 +134,34 @@ export default {
         }
       }
     },
-    downloadSelected() {},
+    downloadSelected() {
+      if (this.selected.length) {
+        let dialogContent = this.data.filter((item) =>
+          this.selected.includes(item.name)
+        );
+        dialogContent = this.groupBy(dialogContent, "status");
+        this.scheduledContent =
+          dialogContent.scheduled &&
+          dialogContent.scheduled.map(({ device, path }) => ({ device, path }));
+        this.availableContent =
+          dialogContent.available &&
+          dialogContent.available.map(({ device, path }) => ({ device, path }));
+        this.showDialog = true;
+
+        return;
+      }
+    },
+    closeDialog() {
+      this.showDialog = false;
+      this.scheduledContent = [];
+      this.availableContent = [];
+    },
+    groupBy(arr, property) {
+      return arr.reduce((acc, cur) => {
+        acc[cur[property]] = [...(acc[cur[property]] || []), cur];
+        return acc;
+      }, {});
+    },
   },
   watch: {
     selected: function () {
@@ -146,6 +209,11 @@ tbody tr:hover {
   cursor: pointer;
 }
 
+tbody .tbl-row-selected {
+  background-color: #ececec;
+  cursor: pointer;
+}
+
 table td {
   text-align: left;
   padding: 10px;
@@ -153,21 +221,61 @@ table td {
 
 .btn {
   background-color: white;
-  border: none;
-  cursor: pointer;
   font-size: 20px;
+  padding: 5px;
+  border: 1px solid #999999;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 10px;
 }
 
 .btn-green {
   background-color: green;
   color: white;
-  padding: 5px;
-  border: 1px solid white;
-  border-radius: 5px;
 }
 
-.tbl-row-selected {
-  background-color: #ececec;
+.btn-disabled {
+  /* background-color: #ececec; */
+  cursor: not-allowed;
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+dialog {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  bottom: 0;
+  padding: 0;
+  width: 500px;
+  border: none;
+  border-radius: 10px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.dialog-header {
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 10px 10px 0px 0px;
+  background-color: #cfcfcf;
+  border-bottom: 1px solid black;
+}
+
+.dialog-header .title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.dialog-header .btn-close {
   cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 1.25rem;
+  font-weight: bold;
 }
 </style>
