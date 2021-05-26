@@ -42,10 +42,8 @@
             {{ col }}
             <i
               :class="{
-                'fa fa-caret-down':
-                  sortByDir == 'asc' && sortByField == col,
-                'fa fa-caret-up':
-                  sortByDir == 'desc' && sortByField == col,
+                'fa fa-caret-down': sortByDir == 'asc' && sortByField == col,
+                'fa fa-caret-up': sortByDir == 'desc' && sortByField == col,
               }"
             ></i>
           </th>
@@ -71,7 +69,8 @@
               "
             >
               <svg height="20" width="20">
-                <circle cx="10" cy="10" r="5" fill="green" />
+                <!-- <circle cx="10" cy="10" r="5" fill="green" /> -->
+                <circle cx="8" cy="12" r="8" fill="#8dd136" />
               </svg>
             </span>
             <span> {{ row[col] }} </span>
@@ -92,35 +91,38 @@
           <i class="fa fa-close"></i>
         </button>
       </div>
-      <h4>Available Content</h4>
-      <div v-if="availableContent && availableContent.length > 0">
-        <div
-          v-for="(content, idx) in availableContent"
-          :key="idx + content.path"
-        >
-          <span
-            ><b>{{ content.device }}</b></span
-          >:
-          {{ content.path }}
+      <div>
+        <h4>Available Content</h4>
+        <div v-if="availableContent && availableContent.length > 0">
+          <div
+            v-for="(content, idx) in availableContent"
+            :key="idx + content.path"
+          >
+            <span
+              ><b>{{ content.device }}</b></span
+            >:
+            {{ content.path }}
+          </div>
         </div>
-      </div>
-      <div v-else>NONE</div>
-      <br />
-      <h4>Scheduled Content</h4>
-      <div v-if="scheduledContent && scheduledContent.length > 0">
-        <div
-          v-for="(content, idx) in scheduledContent"
-          :key="idx + content.path"
-        >
-          <span
-            ><b>{{ content.device }}</b></span
-          >:
-          {{ content.path }}
+        <div v-else>NONE</div>
+        <br />
+        <h4>Scheduled Content</h4>
+        <div v-if="scheduledContent && scheduledContent.length > 0">
+          <div
+            v-for="(content, idx) in scheduledContent"
+            :key="idx + content.path"
+          >
+            <span
+              ><b>{{ content.device }}</b></span
+            >:
+            {{ content.path }}
+          </div>
         </div>
+        <div v-else>NONE</div>
+        <button class="btn btn-green" @click="closeDialog">OK</button>
       </div>
-      <div v-else>NONE</div>
-      <button class="btn btn-green" @click="closeDialog">OK</button>
     </dialog>
+    <div id="overlay" :class="{'active' : showDialog}"></div>
   </div>
 </template>
 
@@ -129,8 +131,8 @@ export default {
   name: "VueTable",
   props: {
     data: Array,
-    defaultSort:String,
-    pageSize:String
+    defaultSort: String,
+    pageSize: String,
   },
   data() {
     return {
@@ -164,9 +166,9 @@ export default {
         .slice(0)
         .sort((a, b) => {
           if (a[this.sortByField] < b[this.sortByField])
-            return -1 * ((this.sortByDir === "desc") ? -1 : 1);
+            return -1 * (this.sortByDir === "desc" ? -1 : 1);
           if (a[this.sortByField] > b[this.sortByField])
-            return 1 * ((this.sortByDir === "desc") ? -1 : 1);
+            return 1 * (this.sortByDir === "desc" ? -1 : 1);
           return 0;
         })
         .filter((row, index) => {
@@ -307,24 +309,26 @@ table td {
 }
 
 dialog {
-  position: relative;
+  position: fixed;
   top: 50%;
   left: 50%;
   margin: 0;
   bottom: 0;
   padding: 0;
   width: 500px;
+  background-color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   transform: translate(-50%, -50%);
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  z-index: 2;
 }
 
 .dialog-header {
   padding: 10px 15px;
   display: flex;
   justify-content: space-between;
-  border-radius: 10px 10px 0px 0px;
+  border-radius: 5px 5px 0px 0px;
   background-color: #cfcfcf;
   border-bottom: 1px solid black;
 }
@@ -341,5 +345,24 @@ dialog {
   background: none;
   font-size: 1.25rem;
   font-weight: bold;
+}
+
+#overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+#overlay.active {
+  opacity: 1;
+  pointer-events: all;
 }
 </style>
