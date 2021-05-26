@@ -1,17 +1,22 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <VueTable :data="tableData" />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import VueTable from '@/components/VueTable.vue';
+import tableData from '@/assets/data/data1.json';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    VueTable
+  },
+  data() {
+    return {
+      tableData:tableData
+    }
   }
 }
 </script>
@@ -19,10 +24,13 @@ export default {
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-size: 0.9em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+  padding: 0;
+  margin: 0;
 }
 </style>
