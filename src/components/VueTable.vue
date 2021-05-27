@@ -7,8 +7,9 @@
       <thead>
         <tr>
           <th scope="col">
-            <label>
+            <label for="check all rows">
               <input
+                id="selectAllChkbox"
                 type="checkbox"
                 v-model="selectAllChkboxModel"
                 v-indeterminate="indeterminateChkboxModel"
@@ -22,6 +23,7 @@
           </th>
           <th scope="col">
             <button
+              id="downloadBtn"
               class="btn"
               @click="downloadSelected"
               :class="{ 'btn-disabled': selected.length == 0 }"
@@ -42,8 +44,8 @@
             {{ col }}
             <i
               :class="{
-                'fa fa-caret-down': sortByDir == 'asc' && sortByField == col,
-                'fa fa-caret-up': sortByDir == 'desc' && sortByField == col,
+                'fa fa-caret-up': sortByDir == 'asc' && sortByField == col,
+                'fa fa-caret-down': sortByDir == 'desc' && sortByField == col,
               }"
             ></i>
           </th>
@@ -54,9 +56,10 @@
           v-for="(row, rowIdx) in sortedData"
           :key="rowIdx"
           :class="{ 'tbl-row-selected': selected.indexOf(row.name) > -1 }"
+          @click="rowSelected(row.name)"
         >
           <td>
-            <label>
+            <label for="check this row">
               <input type="checkbox" :value="row.name" v-model="selected" />
               <i class="form-icon"></i>
             </label>
@@ -88,7 +91,7 @@
       <div class="dialog-header">
         <div class="title">Downloadable Content</div>
         <button class="btn-close" @click="closeDialog">
-          <i class="fa fa-close"></i>
+          <i class="fas fa-times"></i>
         </button>
       </div>
       <div>
@@ -119,10 +122,12 @@
           </div>
         </div>
         <div v-else>NONE</div>
-        <button class="btn btn-green" @click="closeDialog">OK</button>
+        <button id="OKBtn" class="btn btn-green" @click="closeDialog">
+          OK
+        </button>
       </div>
     </dialog>
-    <div id="overlay" :class="{'active' : showDialog}"></div>
+    <div id="overlay" :class="{'active': showDialog}"></div>
   </div>
 </template>
 
@@ -151,9 +156,9 @@ export default {
     };
   },
   created() {
-    if (this.data.length) this.cols = Object.keys(this.data[0]);
-    this.pageSizeNo = this.pageSize;
-    this.sortByField = this.defaultSort;
+    if (this.data && this.data.length) this.cols = Object.keys(this.data[0]);
+    this.pageSizeNo = this.pageSize || "5";
+    this.sortByField = this.defaultSort || "name";
   },
   computed: {
     getSelectedCount() {
@@ -162,20 +167,23 @@ export default {
         : "None Selected";
     },
     sortedData() {
-      return this.data
-        .slice(0)
-        .sort((a, b) => {
-          if (a[this.sortByField] < b[this.sortByField])
-            return -1 * (this.sortByDir === "desc" ? -1 : 1);
-          if (a[this.sortByField] > b[this.sortByField])
-            return 1 * (this.sortByDir === "desc" ? -1 : 1);
-          return 0;
-        })
-        .filter((row, index) => {
-          let start = (this.currentPage - 1) * this.pageSizeNo;
-          let end = this.currentPage * this.pageSizeNo;
-          if (index >= start && index < end) return true;
-        });
+      return (
+        this.data &&
+        this.data
+          .slice(0)
+          .sort((a, b) => {
+            if (a[this.sortByField] < b[this.sortByField])
+              return -1 * (this.sortByDir === "desc" ? -1 : 1);
+            if (a[this.sortByField] > b[this.sortByField])
+              return 1 * (this.sortByDir === "desc" ? -1 : 1);
+            return 0;
+          })
+          .filter((row, index) => {
+            let start = (this.currentPage - 1) * this.pageSizeNo;
+            let end = this.currentPage * this.pageSizeNo;
+            if (index >= start && index < end) return true;
+          })
+      );
     },
   },
   methods: {
@@ -228,13 +236,22 @@ export default {
     prevPage: function () {
       if (this.currentPage > 1) this.currentPage--;
     },
+    rowSelected(id) {
+      if (id && !this.selected.includes(id)) {
+        this.selected.push(id);
+      } else this.selected.splice(this.selected.indexOf(id), 1);
+    },
   },
   watch: {
     selected: function () {
-      if (this.selected.length == this.data.length) {
+      if (
+        this.selected &&
+        this.data &&
+        this.selected.length == this.data.length
+      ) {
         this.selectAllChkboxModel = true;
         this.indeterminateChkboxModel = false;
-      } else if (this.selected.length == 0) {
+      } else if (this.selected && this.selected.length == 0) {
         this.selectAllChkboxModel = false;
         this.indeterminateChkboxModel = false;
       } else this.indeterminateChkboxModel = true;
@@ -315,7 +332,7 @@ dialog {
   margin: 0;
   bottom: 0;
   padding: 0;
-  width: 500px;
+  width: 70%;
   background-color: white;
   border: none;
   border-radius: 5px;
@@ -355,7 +372,7 @@ dialog {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1;
   pointer-events: none;
   opacity: 0;
