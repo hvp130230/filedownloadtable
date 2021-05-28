@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="showTable">
     <table summary="List of files that can be downloaded">
       <caption>
         Downloadable Files list
@@ -79,14 +79,23 @@
             <span> {{ row[col] }} </span>
           </td>
         </tr>
+        <tr>
+          <td :colspan="cols.length + 1">
+            Showing {{ pageSize * currentPage - pageSize + 1 }} of
+            {{ pageSize * currentPage }}
+            <button class="btn" @click="prevPage">
+              <i class="fa fa-caret-left"></i>
+              Prev
+            </button>
+            <button class="btn" @click="nextPage">
+              Next
+              <i class="fa fa-caret-right"></i>
+            </button>
+          </td>
+        </tr>
       </tbody>
     </table>
-    <button class="btn" @click="prevPage">
-      <i class="fa fa-caret-left"></i> Previous
-    </button>
-    <button class="btn" @click="nextPage">
-      Next <i class="fa fa-caret-right"></i>
-    </button>
+
     <dialog open id="dialog" v-if="showDialog">
       <div class="dialog-header">
         <div class="title">Downloadable Content</div>
@@ -129,6 +138,9 @@
     </dialog>
     <div id="overlay" :class="{'active': showDialog}"></div>
   </div>
+  <div v-else>
+    <div class="no-data">No data to show right now!!</div>
+  </div>
 </template>
 
 <script>
@@ -153,12 +165,17 @@ export default {
       sortByDir: "asc",
       pageSizeNo: "5",
       currentPage: "1",
+      showTable: false,
     };
   },
   created() {
+    if (!this.data || !this.data.length) {
+      return;
+    }
     if (this.data && this.data.length) this.cols = Object.keys(this.data[0]);
     this.pageSizeNo = this.pageSize || "5";
     this.sortByField = this.defaultSort || "name";
+    this.showTable = true;
   },
   computed: {
     getSelectedCount() {
@@ -302,9 +319,16 @@ table td {
   padding: 10px;
 }
 
+table .no-data {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .btn {
   background-color: white;
-  font-size: 20px;
+  font-size: 1em;
   padding: 5px;
   border: 1px solid #999999;
   cursor: pointer;
@@ -351,7 +375,7 @@ dialog {
 }
 
 .dialog-header .title {
-  font-size: 1.25rem;
+  font-size: 1em;
   font-weight: bold;
 }
 
@@ -360,7 +384,7 @@ dialog {
   border: none;
   outline: none;
   background: none;
-  font-size: 1.25rem;
+  font-size: 1em;
   font-weight: bold;
 }
 
