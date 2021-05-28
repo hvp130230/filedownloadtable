@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <VueTable :data="tableData" defaultSort="name" pageSize=3 />
+    <VueTable :data="tableData" sortBy="name" sortOrder="desc" pageSize="5" />
   </div>
 </template>
 
@@ -24,7 +24,7 @@ export default {
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  font-size: 0.9em;
+  font-size: 1em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
