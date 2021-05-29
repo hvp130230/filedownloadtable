@@ -87,13 +87,20 @@
         </tr>
         <tr>
           <td :colspan="cols.length + 1">
-            Showing
-            {{ pageSize * currentPage - pageSize + 1 }}
+            Records Per Page:
+            <select @change="pageSizeChanged($event)">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="7">7</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            {{ pageSizeNo * currentPage - pageSizeNo + 1 }}
             -
             {{
-              pageSize * currentPage -
-              pageSize +
-              Math.min(pageSize, sortedData.length)
+              pageSizeNo * currentPage -
+              pageSizeNo +
+              Math.min(pageSizeNo, sortedData.length)
             }}
             of
             {{ data.length }}
@@ -101,7 +108,7 @@
               <i class="fa fa-caret-left"></i>
               Prev
             </button>
-            <button class="btn" @click="nextPage">
+            <button id="nextBtn" class="btn" @click="nextPage">
               Next
               <i class="fa fa-caret-right"></i>
             </button>
@@ -110,48 +117,59 @@
       </tbody>
     </table>
 
-    <dialog open id="dialog" v-if="showDialog">
-      <div class="dialog-header">
+    <Dialog :showDialog="showDialog">
+      <template slot="header">
         <div class="title">Downloadable Content</div>
-        <button class="btn-close" @click="closeDialog">
+        <button id="closeBtn" class="btn-close" @click="closeDialog">
           <i class="fas fa-times"></i>
         </button>
-      </div>
-      <div class="dialog-content">
+      </template>
+      <template slot="body">
         <h4>Available Content</h4>
-        <div class="all-content" v-if="availableContent && availableContent.length > 0">
+        <div v-if="availableContent && availableContent.length > 0">
           <div
-            class="available-content"
+            class="dialog-body-content"
             v-for="(content, idx) in availableContent"
             :key="idx + content.path"
-            @click="downloadAvailableFile"
-            title="Click to download"
           >
-            <span
-              ><b>{{ content.device }}</b></span
-            >:
-            {{ content.path }}
+            <div>
+              <span
+                ><b>{{ content.device }}</b></span
+              >
+              : {{ content.path }}
+            </div>
+            <button
+              id="downloadBtn"
+              class="btn btn-push btn-green align-right"
+              @click="downloadAvailableFile"
+            >
+              <i class="fa fa-download"></i> Download
+            </button>
           </div>
         </div>
         <div v-else>NONE</div>
         <br />
         <h4>Scheduled Content</h4>
-        <div class="all-content" v-if="scheduledContent && scheduledContent.length > 0">
+        <div v-if="scheduledContent && scheduledContent.length > 0">
           <div
-            class="unavailable-content"
+            class="dialog-body-content"
             v-for="(content, idx) in scheduledContent"
             :key="idx + content.path"
           >
-            <span
-              ><b>{{ content.device }}</b></span
-            >:
-            {{ content.path }}
+            <div>
+              <span
+                ><b>{{ content.device }}</b></span
+              >
+              : {{ content.path }}
+            </div>
+            <button id="downloadBtn" class="btn btn-disabled align-right">
+              <i class="fa fa-clock"></i> Scheduled
+            </button>
           </div>
         </div>
         <div v-else>NONE</div>
-      </div>
-    </dialog>
-    <div id="overlay" :class="{ active: showDialog }"></div>
+      </template>
+    </Dialog>
   </div>
   <div v-else>
     <div class="no-data">No data to show right now!!</div>
@@ -159,6 +177,7 @@
 </template>
 
 <script>
+import Dialog from "./Dialog.vue";
 export default {
   name: "VueTable",
   props: {
@@ -195,6 +214,9 @@ export default {
       currentPage: "1",
       showTable: false,
     };
+  },
+  components: {
+    Dialog,
   },
   created() {
     if (!this.data || !this.data.length) {
@@ -289,8 +311,13 @@ export default {
       } else this.selected.splice(this.selected.indexOf(id), 1);
     },
     downloadAvailableFile() {
-      alert('Your file is being downloaded now!!');
-    }
+      alert("Your file is being downloaded now!!");
+    },
+    pageSizeChanged(event) {
+      if (this.currentPage * event.target.value > this.data.length)
+        this.currentPage = 1;
+      this.pageSizeNo = event.target.value;
+    },
   },
   watch: {
     selected: function () {
@@ -359,14 +386,19 @@ table .no-data {
   transform: translate(-50%, -50%);
 }
 
-.btn {
-  background-color: white;
+.btn, select {
+  background-color: #ffffff;
   font-size: 1em;
   padding: 5px;
   border: 1px solid #999999;
   cursor: pointer;
   border-radius: 5px;
-  margin: 10px;
+  margin: 5px;
+  transition: All 250ms ease;
+}
+
+.btn-green {
+  background-color: #04aa6d;
 }
 
 .btn-disabled {
@@ -376,37 +408,7 @@ table .no-data {
   color: #666666;
 }
 
-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  margin: 0;
-  bottom: 0;
-  padding: 0;
-  width: 45%;
-  background-color: white;
-  border: none;
-  border-radius: 5px;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  z-index: 2;
-}
-
-.dialog-header {
-  padding: 10px 15px;
-  display: flex;
-  justify-content: space-between;
-  border-radius: 5px 5px 0px 0px;
-  background-color: #cfcfcf;
-  border-bottom: 1px solid black;
-}
-
-.dialog-header .title {
-  font-size: 1em;
-  font-weight: bold;
-}
-
-.dialog-header .btn-close {
+.btn-close {
   cursor: pointer;
   border: none;
   outline: none;
@@ -415,56 +417,36 @@ dialog {
   font-weight: bold;
 }
 
-.dialog-header .btn-close:hover {
-  color:white;
+.btn:hover {
+  background-color: #f5deb3;
 }
 
-.dialog-content {
-  padding: 10px;
-  height: 40vh;
-  overflow: auto;
-  text-align: left;
-  word-wrap: break-word;
+.btn-close:hover {
+  color: #ffffff;
 }
 
-.all-content {
-  display: inline-block;
-  margin-right: 0.2rem;
-  text-decoration: none;
+.btn:active {
+  box-shadow: 0 5px #666666;
+  transform: translateY(2px);
 }
 
-.all-content .available-content{
-  cursor: pointer;
+.align-right {
+  margin-left: auto;
 }
 
-.all-content .unavailable-content{
-  cursor: not-allowed;
+dialog .dialog-body-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f2f3f4;
+  padding: 4px;
+  margin: 5px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-.all-content .available-content::before {
-  content: "✅";
-}
-
-.all-content .unavailable-content::before {
-  content: "❌";
-}
-
-#overlay {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0;
-}
-
-#overlay.active {
-  opacity: 1;
-  pointer-events: all;
+dialog .title {
+  font-size: 1em;
+  font-weight: bold;
 }
 </style>
