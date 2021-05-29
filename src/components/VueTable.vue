@@ -7,23 +7,23 @@
       <thead>
         <tr>
           <th scope="col">
-            <label for="check all rows">
-              <input
-                id="selectAllChkbox"
-                type="checkbox"
-                v-model="selectAllChkboxModel"
-                v-indeterminate="indeterminateChkboxModel"
-                @click="selectAllItems"
-              />
-              <i class="form-icon"></i>
-            </label>
+            <input
+              id="selectAllChkbox"
+              type="checkbox"
+              name="selectAllCheckboxes"
+              v-model="selectAllChkboxModel"
+              v-indeterminate="indeterminateChkboxModel"
+              @click="selectAllItems"
+            />
+            <label class="screenreader-only" for="selectAllChkbox">Select All Rows</label>
           </th>
           <th scope="col">
             {{ getSelectedCount }}
           </th>
           <th scope="col">
             <button
-              id="downloadBtn"
+              type="button"
+              id="downloadSelectedBtn"
               class="btn"
               @click="downloadSelected"
               :class="{ 'btn-disabled': selected.length == 0 }"
@@ -62,13 +62,15 @@
           @click="rowSelected(row.name + '_' + row.path)"
         >
           <td>
-            <label for="check this row">
-              <input
-                type="checkbox"
-                :value="row.name + '_' + row.path"
-                v-model="selected"
-              />
-              <i class="form-icon"></i>
+            <input
+              :id="row.name + '_' + rowIdx"
+              type="checkbox"
+              name="downloadTableRows"
+              :value="row.name + '_' + row.path"
+              v-model="selected"
+            />
+            <label class="screenreader-only" :for="row.name + '_' + rowIdx"
+              >Select row {{ rowIdx }}
             </label>
           </td>
           <td :data-label="col" v-for="(col, colIdx) in cols" :key="colIdx">
@@ -87,8 +89,12 @@
         </tr>
         <tr>
           <td :colspan="cols.length + 1">
-            Records Per Page:
-            <select @change="pageSizeChanged($event)">
+            Records/Page:
+            <select
+              name="pageSizes"
+              id="pageSize-select"
+              @change="pageSizeChanged($event)"
+            >
               <option value="3">3</option>
               <option value="5" selected>5</option>
               <option value="7">7</option>
@@ -104,11 +110,11 @@
             }}
             of
             {{ data.length }}
-            <button class="btn" @click="prevPage">
+            <button type="button" class="btn" @click="prevPage">
               <i class="fa fa-caret-left"></i>
               Prev
             </button>
-            <button id="nextBtn" class="btn" @click="nextPage">
+            <button type="button" id="nextBtn" class="btn" @click="nextPage">
               Next
               <i class="fa fa-caret-right"></i>
             </button>
@@ -120,7 +126,12 @@
     <Dialog :showDialog="showDialog">
       <template slot="header">
         <div class="title">Downloadable Content</div>
-        <button id="closeBtn" class="btn-close" @click="closeDialog">
+        <button
+          type="button"
+          id="closeBtn"
+          class="btn-close"
+          @click="closeDialog"
+        >
           <i class="fas fa-times"></i>
         </button>
       </template>
@@ -139,7 +150,8 @@
               : {{ content.path }}
             </div>
             <button
-              id="downloadBtn"
+              type="button"
+              id="downloadAvailableBtn"
               class="btn btn-push btn-green align-right"
               @click="downloadAvailableFile"
             >
@@ -162,7 +174,11 @@
               >
               : {{ content.path }}
             </div>
-            <button id="downloadBtn" class="btn btn-disabled align-right">
+            <button
+              type="button"
+              id="downloadScheduledBtn"
+              class="btn btn-disabled align-right"
+            >
               <i class="fa fa-clock"></i> Scheduled
             </button>
           </div>
@@ -446,7 +462,17 @@ dialog .dialog-body-content {
 }
 
 dialog .title {
-  font-size: 1em;
   font-weight: bold;
+}
+
+.screenreader-only {
+  border: none;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
 }
 </style>
