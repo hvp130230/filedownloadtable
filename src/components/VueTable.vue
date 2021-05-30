@@ -15,7 +15,9 @@
               v-indeterminate="indeterminateChkboxModel"
               @click="selectAllItems"
             />
-            <label class="screenreader-only" for="selectAllChkbox">Select All Rows</label>
+            <label class="screenreader-only" for="selectAllChkbox"
+              >Select All Rows</label
+            >
           </th>
           <th scope="col">
             {{ getSelectedCount }}
@@ -28,7 +30,7 @@
               @click="downloadSelected"
               :class="{ 'btn-disabled': selected.length == 0 }"
             >
-              <i class="fa fa-download"></i> Download Selected
+              <i class="fas fa-download"></i> Download Selected
             </button>
           </th>
           <th :colspan="cols.length - 2"></th>
@@ -44,8 +46,8 @@
             {{ col }}
             <i
               :class="{
-                'fa fa-caret-up': sortByDir == 'asc' && sortByField == col,
-                'fa fa-caret-down': sortByDir == 'desc' && sortByField == col,
+                'fas fa-caret-up': sortByDir == 'asc' && sortByField == col,
+                'fas fa-caret-down': sortByDir == 'desc' && sortByField == col,
               }"
             ></i>
           </th>
@@ -87,105 +89,42 @@
             <span> {{ row[col] }} </span>
           </td>
         </tr>
-        <tr>
-          <td :colspan="cols.length + 1">
-            Records/Page:
-            <select
-              name="pageSizes"
-              id="pageSize-select"
-              @change="pageSizeChanged($event)"
-            >
-              <option value="3">3</option>
-              <option value="5" selected>5</option>
-              <option value="7">7</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
-            {{ pageSizeNo * currentPage - pageSizeNo + 1 }}
-            -
-            {{
-              pageSizeNo * currentPage -
-              pageSizeNo +
-              Math.min(pageSizeNo, sortedData.length)
-            }}
-            of
-            {{ data.length }}
-            <button type="button" class="btn" @click="prevPage">
-              <i class="fa fa-caret-left"></i>
-              Prev
-            </button>
-            <button type="button" id="nextBtn" class="btn" @click="nextPage">
-              Next
-              <i class="fa fa-caret-right"></i>
-            </button>
-          </td>
-        </tr>
       </tbody>
     </table>
 
-    <Dialog :showDialog="showDialog">
-      <template slot="header">
-        <div class="title">Downloadable Content</div>
-        <button
-          type="button"
-          id="closeBtn"
-          class="btn-close"
-          @click="closeDialog"
-        >
-          <i class="fas fa-times"></i>
-        </button>
-      </template>
-      <template slot="body">
-        <h4>Available Content</h4>
-        <div v-if="availableContent && availableContent.length > 0">
-          <div
-            class="dialog-body-content"
-            v-for="(content, idx) in availableContent"
-            :key="idx + content.path"
-          >
-            <div>
-              <span
-                ><b>{{ content.device }}</b></span
-              >
-              : {{ content.path }}
-            </div>
-            <button
-              type="button"
-              id="downloadAvailableBtn"
-              class="btn btn-push btn-green align-right"
-              @click="downloadAvailableFile"
-            >
-              <i class="fa fa-download"></i> Download
-            </button>
-          </div>
-        </div>
-        <div v-else>NONE</div>
-        <br />
-        <h4>Scheduled Content</h4>
-        <div v-if="scheduledContent && scheduledContent.length > 0">
-          <div
-            class="dialog-body-content"
-            v-for="(content, idx) in scheduledContent"
-            :key="idx + content.path"
-          >
-            <div>
-              <span
-                ><b>{{ content.device }}</b></span
-              >
-              : {{ content.path }}
-            </div>
-            <button
-              type="button"
-              id="downloadScheduledBtn"
-              class="btn btn-disabled align-right"
-            >
-              <i class="fa fa-clock"></i> Scheduled
-            </button>
-          </div>
-        </div>
-        <div v-else>NONE</div>
-      </template>
-    </Dialog>
+    <Pagination
+      :pageSizeNo="pageSizeNo"
+      :currPageNo="currentPage"
+      :currPageLength="sortedData.length"
+      :totalItems="data.length"
+      @prevPageClicked="prevPage"
+      @nextPageClicked="nextPage"
+      @pageSizeUpdated="pageSizeChanged"
+    />
+
+    <div class="resp-header">
+      <input
+        id="selectAllChkbox-resp"
+        type="checkbox"
+        name="selectAllCheckboxes"
+        v-model="selectAllChkboxModel"
+        v-indeterminate="indeterminateChkboxModel"
+        @click="selectAllItems"
+      />
+      <label class="screenreader-only" for="selectAllChkbox-resp"
+        >Select All Rows</label
+      >
+      {{ getSelectedCount }}
+      <button
+        type="button"
+        id="downloadSelectedBtn-resp"
+        class="btn"
+        @click="downloadSelected"
+        :class="{ 'btn-disabled': selected.length == 0 }"
+      >
+        <i class="fas fa-download"></i> Download
+      </button>
+    </div>
   </div>
   <div v-else>
     <div class="no-data">No data to show right now!!</div>
@@ -193,7 +132,7 @@
 </template>
 
 <script>
-import Dialog from "./Dialog.vue";
+import Pagination from "./Pagination.vue";
 export default {
   name: "VueTable",
   props: {
@@ -220,10 +159,6 @@ export default {
       selected: [],
       selectAllChkboxModel: false,
       indeterminateChkboxModel: false,
-      showDialog: false,
-      dialogContent: [],
-      availableContent: [],
-      scheduledContent: [],
       sortByField: "name",
       sortByDir: "asc",
       pageSizeNo: "5",
@@ -232,7 +167,7 @@ export default {
     };
   },
   components: {
-    Dialog,
+    Pagination,
   },
   created() {
     if (!this.data || !this.data.length) {
@@ -285,28 +220,11 @@ export default {
         let dialogContent = this.data.filter((item) =>
           this.selected.includes(item.name + "_" + item.path)
         );
-        dialogContent = this.groupBy(dialogContent, "status");
-        this.scheduledContent =
-          dialogContent.scheduled &&
-          dialogContent.scheduled.map(({ device, path }) => ({ device, path }));
-        this.availableContent =
-          dialogContent.available &&
-          dialogContent.available.map(({ device, path }) => ({ device, path }));
-        this.showDialog = true;
 
-        return;
+        this.$emit("downloadSelectedClicked", {
+          dialogContent: dialogContent,
+        });
       }
-    },
-    closeDialog() {
-      this.showDialog = false;
-      this.scheduledContent = [];
-      this.availableContent = [];
-    },
-    groupBy(arr, property) {
-      return arr.reduce((acc, cur) => {
-        acc[cur[property]] = [...(acc[cur[property]] || []), cur];
-        return acc;
-      }, {});
     },
     sort(colName) {
       if (colName === this.sortByField) {
@@ -314,25 +232,20 @@ export default {
       }
       this.sortByField = colName;
     },
-    nextPage() {
-      if (this.currentPage * this.pageSizeNo < this.data.length)
-        this.currentPage++;
+    nextPage(payload) {
+      this.currentPage = payload.currentPage;
     },
-    prevPage: function () {
-      if (this.currentPage > 1) this.currentPage--;
+    prevPage(payload) {
+      this.currentPage = payload.currentPage;
     },
     rowSelected(id) {
       if (id && !this.selected.includes(id)) {
         this.selected.push(id);
       } else this.selected.splice(this.selected.indexOf(id), 1);
     },
-    downloadAvailableFile() {
-      alert("Your file is being downloaded now!!");
-    },
-    pageSizeChanged(event) {
-      if (this.currentPage * event.target.value > this.data.length)
-        this.currentPage = 1;
-      this.pageSizeNo = event.target.value;
+    pageSizeChanged(payload) {
+      this.currentPage = payload.currentPage;
+      this.pageSizeNo = payload.pageSizeNo;
     },
   },
   watch: {
@@ -402,77 +315,60 @@ table .no-data {
   transform: translate(-50%, -50%);
 }
 
-.btn, select {
-  background-color: #ffffff;
-  font-size: 1em;
-  padding: 5px;
-  border: 1px solid #999999;
-  cursor: pointer;
-  border-radius: 5px;
-  margin: 5px;
-  transition: All 250ms ease;
+.resp-header {
+  display: none;
 }
 
-.btn-green {
-  background-color: #04aa6d;
-}
+@media screen and (max-width: 415px) {
+  table {
+    border: 0;
+    margin: 0;
+  }
 
-.btn-disabled {
-  cursor: not-allowed;
-  border: 1px solid #999999;
-  background-color: #cccccc;
-  color: #666666;
-}
+  table caption {
+    font-size: 1.3em;
+  }
 
-.btn-close {
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: none;
-  font-size: 1em;
-  font-weight: bold;
-}
+  table th {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
 
-.btn:hover {
-  background-color: #f5deb3;
-}
+  tbody tr {
+    border: 1px solid#e0e0e0;
+    display: grid;
+    margin: 5px;
+  }
 
-.btn-close:hover {
-  color: #ffffff;
-}
+  table td {
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.btn:active {
-  box-shadow: 0 5px #666666;
-  transform: translateY(2px);
-}
+  table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: capitalize;
+  }
 
-.align-right {
-  margin-left: auto;
-}
-
-dialog .dialog-body-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f2f3f4;
-  padding: 4px;
-  margin: 5px;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-dialog .title {
-  font-weight: bold;
-}
-
-.screenreader-only {
-  border: none;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
+  .resp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f2f3f4;
+    padding: 4px;
+    margin: 5px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  }
 }
 </style>

@@ -18,7 +18,7 @@ export default {
   props: {
     showDialog: {
       type: Boolean,
-      required: true
+      required: true,
     },
   },
 };
@@ -78,5 +78,15 @@ dialog {
 #overlay.active {
   opacity: 1;
   pointer-events: all;
+}
+
+@media screen and (max-width: 415px) {
+  dialog {
+    width: 85%;
+  }
+
+  .dialog-content {
+    height: 60vh;
+  }
 }
 </style>
