@@ -40,7 +40,7 @@ describe('test', () => {
     expect(isDisabled).to.include.members(["btn", "btn-disabled"])
   })
 
-  it('Verifies that Download Selected button is enabled when no record is selected', async () => {
+  it('Verifies that Download Selected button is enabled when a record is selected', async () => {
       await component.setData({
         selected: ["cryptbase.dll_\\Device\\HarddiskVolume1\\Windows\\System32\\cryptbase.dll"]
       });
