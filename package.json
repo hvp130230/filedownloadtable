@@ -5,16 +5,9 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "test:unit": "./node_modules/.bin/nyc --reporter=text vue-cli-service test:unit",
+    "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "test:debug": "vue-cli-service test:unit --inspect-brk --watch"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.(js|vue)"
-    ],
-    "instrument": false,
-    "sourcemap": false
   },
   "dependencies": {
     "core-js": "^3.6.5",
@@ -31,8 +24,6 @@
     "chai": "^4.1.2",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
-    "mocha": "^8.4.0",
-    "nyc": "^15.1.0",
     "vue-template-compiler": "^2.6.11",
     "webpack": "^4.0.0"
   },

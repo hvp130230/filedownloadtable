@@ -91,7 +91,7 @@
         </tr>
       </tbody>
     </table>
-
+    <br />
     <Pagination
       :pageSizeNo="pageSizeNo"
       :currPageNo="currentPage"
