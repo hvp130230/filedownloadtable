@@ -2,7 +2,7 @@
 
 File Download Table is a VueJs application to view a list of downloadable files in tabular format and download the files with "Available" Status
 
-### DEMO ** [RUN DEMO](https://codesandbox.io/s/harshalpawar-w2fwv)**
+### DEMO ** [RUN DEMO](https://codesandbox.io/s/hvp130230-u7noh)**
 
 ## Built Using
 
